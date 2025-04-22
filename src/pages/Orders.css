@@ -1,0 +1,59 @@
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+h2 {
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+}
+
+.order-card {
+  border: 1px solid #ddd;
+  border-left: 4px solid #f60;
+  padding: 16px;
+  margin-bottom: 20px;
+  border-radius: 6px;
+  background-color: #fff;
+}
+
+.order-card h5 {
+  font-weight: bold;
+}
+
+.order-card p {
+  margin: 0.3rem 0;
+  font-size: 15px;
+}
+
+.order-card .badge {
+  font-size: 13px;
+  padding: 5px 10px;
+  border-radius: 20px;
+}
+
+.order-card .table {
+  margin-top: 1rem;
+  background-color: #fdfdfd;
+}
+
+.order-card .table th,
+.order-card .table td {
+  vertical-align: middle;
+  text-align: center;
+}
+
+.order-card img {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  max-width: 60px;
+  object-fit: cover;
+}
+
+.order-card .text-end {
+  text-align: right;
+}
+
+.order-card .btn {
+  margin-top: 10px;
+}

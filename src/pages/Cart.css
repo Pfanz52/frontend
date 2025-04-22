@@ -1,0 +1,50 @@
+/* Căn giữa tổng thể */
+.container {
+    animation: fadeIn 0.4s ease-in-out;
+  }
+  
+  /* Ảnh sản phẩm nhỏ gọn */
+  .table img {
+    border-radius: 6px;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Nút số lượng */
+  .table .btn {
+    min-width: 30px;
+    padding: 2px 8px;
+  }
+  
+  /* Hiệu ứng hover nút xoá */
+  .table .btn-danger:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+  }
+  
+  /* Gạch chân tên sản phẩm khi hover */
+  .table a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Responsive bảng nhỏ */
+  @media (max-width: 576px) {
+    .table th,
+    .table td {
+      font-size: 14px;
+      padding: 0.5rem;
+    }
+  }
+  
+  /* Hiệu ứng mượt */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  

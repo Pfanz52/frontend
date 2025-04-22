@@ -1,0 +1,45 @@
+.container h2 {
+  font-weight: bold;
+  margin-bottom: 2rem;
+}
+
+form input,
+form textarea {
+  border: 1px solid #ced4da;
+  padding: 10px;
+  font-size: 15px;
+}
+
+form button {
+  background-color: #212529;
+  color: white;
+  font-weight: bold;
+}
+
+form button:hover {
+  background-color: #343a40;
+}
+
+.alert {
+  font-size: 14px;
+}
+.map-responsive {
+  overflow: hidden;
+  padding-bottom: 56.25%;
+  position: relative;
+  height: 0;
+}
+.map-responsive iframe {
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+}
+.card {
+  border-radius: 16px;
+  background-color: #fff;
+}
+input, textarea {
+  border-radius: 8px;
+}
