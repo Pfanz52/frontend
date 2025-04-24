@@ -1,8 +1,9 @@
 import './Home.css';
 import axios from 'axios';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { FaMicrochip } from 'react-icons/fa';
 
 // 🎞️ Banner đổi ảnh tự động
 const bannerImages = [
@@ -26,7 +27,7 @@ function BannerCarousel () {
           src={bannerImages[current].src}
           alt={`Banner ${current + 1}`}
           className='img-fluid rounded shadow'
-          style={{ maxHeight: '300px', transition: 'all 0.5s ease-in-out' }}
+          style={{ maxHeight: '360px', transition: 'all 0.5s ease-in-out' }}
         />
       </a>
     </div>
@@ -35,20 +36,15 @@ function BannerCarousel () {
 
 function Home () {
   const [products, setProducts] = useState([]);
-  // const [brands, setBrands] = useState([]);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const limit = 12;
+  const [slideIndex, setSlideIndex] = useState({});
   const { addToCart } = useCart();
 
   const handleAddToCart = (e, product) => {
     const img = e.target.closest('.card').querySelector('img');
     const imgClone = img.cloneNode(true);
     const cartIcon = document.querySelector('.cart-icon');
-
     const rect = img.getBoundingClientRect();
     const cartRect = cartIcon.getBoundingClientRect();
-
     imgClone.style.position = 'fixed';
     imgClone.style.top = rect.top + 'px';
     imgClone.style.left = rect.left + 'px';
@@ -56,129 +52,153 @@ function Home () {
     imgClone.style.transition = 'all 0.7s ease-in-out';
     imgClone.style.zIndex = 999;
     document.body.appendChild(imgClone);
-
     setTimeout(() => {
       imgClone.style.top = cartRect.top + 'px';
       imgClone.style.left = cartRect.left + 'px';
       imgClone.style.width = '20px';
       imgClone.style.opacity = '0.5';
     }, 0);
-
     setTimeout(() => {
       document.body.removeChild(imgClone);
     }, 700);
-
     addToCart(product);
   };
 
-  // ✅ Gọi API lấy sản phẩm có phân trang (không lọc)
-  const fetchProducts = useCallback(() => {
-    const url = `http://localhost:5000/api/products?page=${page}&limit=${limit}`;
-
+  useEffect(() => {
     axios
-      .get(url)
+      .get('http://localhost:5000/api/products?limit=10000')
       .then(res => {
-        const { products, total } = res.data;
-        setProducts(products);
-        setTotalPages(Math.ceil(total / limit));
+        const data = Array.isArray(res.data)
+          ? res.data
+          : res.data.products || [];
+        setProducts(data);
+        // Khởi tạo index trượt mỗi category
+        const catIndex = {};
+        data.forEach(p => {
+          if (!catIndex[p.category]) catIndex[p.category] = 0;
+        });
+        setSlideIndex(catIndex);
       })
-      .catch(err => console.log(err));
-  }, [page]);
-
-  useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
-
-  // ✅ Lấy thương hiệu 1 lần
-  useEffect(() => {
-    axios
-      .get('http://localhost:5000/api/brands')
-      // .then(res => setBrands(res.data))
       .catch(err => console.log(err));
   }, []);
 
+  const handleSlide = (cat, direction, total) => {
+    setSlideIndex(prev => {
+      const current = prev[cat] || 0;
+      const max = Math.max(0, total - 4);
+      const next =
+        direction === 'left'
+          ? Math.max(0, current - 1)
+          : Math.min(max, current + 1);
+      return { ...prev, [cat]: next };
+    });
+  };
+
   return (
     <div className='container mt-5'>
-      {/* Banner */}
-      <img src='/images/slider_1.png' alt='Banner' width='100%' />{' '}
+      <img src='/images/slider_1.png' alt='Banner' width='100%' />
       <hr className='mt-5' />
       <BannerCarousel />
-      {/* Thương hiệu */}
-      {/* <div className='row mt-5 text-center'>
-        {brands.length === 0 ? (
-          <p>Đang tải thương hiệu...</p>
-        ) : (
-          brands.map((brand, index) => (
-            <div className='col-md-3 col-6 mb-4' key={index}>
-              <img src={brand.image} alt={brand.name} className='img-fluid' />
-            </div>
-          ))
-        )}
-      </div> */}
       <hr />
-      <h1 className='text-center fs-4 fw-bold m-4'>SẢN PHẨM</h1>
-      {/* Danh sách sản phẩm */}
-      <div className='row'>
-        {products.length === 0 ? (
-          <p className='text-center'>Không có sản phẩm nào.</p>
-        ) : (
-          products.map((product, index) => (
-            <div className='col-md-3 col-sm-6 mb-4' key={index}>
-              <div className='card border-0 shadow-sm h-100'>
-                <a href={`/product/${product._id}`}>
-                  <img
-                    src={product.image}
-                    className='card-img-top'
-                    alt={product.name}
-                    style={{ height: 200, objectFit: 'cover' }}
-                  />
-                </a>
-                <div className='card-body text-center'>
-                  <p className='card-text'>{product.name}</p>
-                  <h5 className='font-weight-bold'>
-                    {product.price.toLocaleString()} VNĐ
-                  </h5>
-                  <button
-                    className='btn btn-dark btn-sm px-3'
-                    onClick={e => handleAddToCart(e, product)}
-                  >
-                    🛒 Thêm vào giỏ
-                  </button>
-                </div>
-              </div>
+      <h1 className='text-center fs-4 fw-bold m-4'>SẢN PHẨM THEO DANH MỤC</h1>
+
+      {[...new Set(products.map(p => p.category))].map((cat, i) => {
+        const prods = products.filter(p => p.category === cat);
+        const start = slideIndex[cat] || 0;
+        const canLeft = start > 0;
+        const canRight = start + 4 < prods.length;
+        if (prods.length === 0) return null;
+        return (
+          <div key={cat} className='mb-5 position-relative'>
+            {/* Tiêu đề danh mục kéo dài đẹp như BLK */}
+            <div className='category-section-title mb-3'>
+              <span className='cat-index'>{i + 1}</span>
+              <FaMicrochip style={{ marginRight: 8, fontSize: 20 }} />
+              {cat}
+              <Link
+                to={`/products?category=${encodeURIComponent(cat)}`}
+                className='btn btn-outline-light btn-sm ms-auto'
+                style={{ position: 'absolute', right: 12, top: 8, zIndex: 2 }}
+              >
+                Xem tất cả
+              </Link>
             </div>
-          ))
-        )}
-      </div>
-      {/* Phân trang */}
-      {totalPages > 1 && (
-        <div className='text-center mt-4'>
-          <button
-            className='btn btn-outline-dark btn-sm me-2'
-            disabled={page === 1}
-            onClick={() => setPage(prev => prev - 1)}
-          >
-            ← Trang trước
-          </button>
-          <span className='mx-2'>
-            Trang {page} / {totalPages}
-          </span>
-          <button
-            className='btn btn-outline-dark btn-sm ms-2'
-            disabled={page === totalPages}
-            onClick={() => setPage(prev => prev + 1)}
-          >
-            Trang tiếp →
-          </button>
-        </div>
-      )}
-      {/* Nút xem tất cả sản phẩm */}
+
+            {/* Nút trái */}
+            {prods.length > 4 && (
+              <button
+                className='btn btn-dark btn-circle'
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '-16px',
+                  transform: 'translateY(-50%)',
+                  zIndex: 3,
+                  opacity: canLeft ? 1 : 0.3,
+                }}
+                disabled={!canLeft}
+                onClick={() => handleSlide(cat, 'left', prods.length)}
+              >
+                ‹
+              </button>
+            )}
+            {/* Danh sách sản phẩm */}
+            <div className='row'>
+              {prods.slice(start, start + 4).map(product => (
+                <div className='col-md-3 col-sm-6 mb-4' key={product._id}>
+                  <div className='card border-0 shadow-sm h-100'>
+                    <Link to={`/product/${product._id}`}>
+                      <img
+                        src={product.image}
+                        className='card-img-top'
+                        alt={product.name}
+                        style={{ height: 180, objectFit: 'cover' }}
+                      />
+                    </Link>
+                    <div className='card-body text-center'>
+                      <p className='card-text'>{product.name}</p>
+                      <h5 className='font-weight-bold'>
+                        {product.price.toLocaleString()} VNĐ
+                      </h5>
+                      <button
+                        className='btn btn-dark btn-sm px-3'
+                        onClick={e => handleAddToCart(e, product)}
+                      >
+                        🛒 Thêm vào giỏ
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* Nút phải */}
+            {prods.length > 4 && (
+              <button
+                className='btn btn-dark btn-circle'
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  right: '-16px',
+                  transform: 'translateY(-50%)',
+                  zIndex: 3,
+                  opacity: canRight ? 1 : 0.3,
+                }}
+                disabled={!canRight}
+                onClick={() => handleSlide(cat, 'right', prods.length)}
+              >
+                ›
+              </button>
+            )}
+          </div>
+        );
+      })}
+
       <div className='text-center mt-4'>
         <Link to='/products' className='btn btn-dark px-4'>
           🔎 Xem tất cả sản phẩm
         </Link>
       </div>
-      {/* Về chúng tôi */}
+
       <div className='about-content text-center mt-5'>
         <p className='fs-5'>VỀ CHÚNG TÔI</p>
         <p className='about-p-2'>
